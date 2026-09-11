@@ -1,0 +1,30 @@
+# --- Secrets ---
+backend/.env
+.env
+
+# --- Raw & generated data (regenerate locally, see README) ---
+# Anchored to the repo root (leading /) so these don't also match the
+# similarly-named bundled sample under data/sample/.
+/Crimes_2018_to_Present.csv
+/Chicago Tribune Data/
+/cache/
+*.faiss
+
+# --- Notebook execution artifacts ---
+Final_Crime_Analysis_Narrative_Intelligence.local_backup.ipynb
+nbconvert_run.log
+.ipynb_checkpoints/
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Node / frontend ---
+frontend/node_modules/
+frontend/dist/
+
+# --- OS ---
+.DS_Store
+Thumbs.db

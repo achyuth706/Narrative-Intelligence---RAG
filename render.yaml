@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: chicago-crime-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python build_index.py
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://chicago-crime-frontend.onrender.com
+
+  - type: web
+    name: chicago-crime-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://chicago-crime-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
