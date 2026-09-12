@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { SendHorizontal, Menu, ShieldHalf } from 'lucide-react'
+import { Menu, ShieldHalf } from 'lucide-react'
 import ChatMessage from './components/ChatMessage'
+import ChatInput from './components/ChatInput'
 import Sidebar from './components/Sidebar'
 import { API_BASE } from './api'
 
-const WELCOME = {
-  role: 'assistant',
-  content:
-    "Ask me about Chicago crime patterns and how the news covered them — e.g. *\"What happened near Lincoln Ave related to robbery this week?\"*",
-}
-
 export default function App() {
-  const [messages, setMessages] = useState([WELCOME])
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [stats, setStats] = useState(null)
@@ -19,6 +14,8 @@ export default function App() {
   const [status, setStatus] = useState('checking')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const scrollRef = useRef(null)
+
+  const started = messages.length > 0
 
   useEffect(() => {
     let cancelled = false
@@ -106,7 +103,7 @@ export default function App() {
           setSidebarOpen(false)
           send(ex)
         }}
-        onReset={() => setMessages([WELCOME])}
+        onReset={() => setMessages([])}
         open={sidebarOpen}
       />
 
@@ -121,62 +118,65 @@ export default function App() {
           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-5">
-            {messages.map((m, i) => (
-              <ChatMessage key={i} {...m} />
-            ))}
-
-            {loading && (
-              <div className="flex gap-3 animate-fade-in-up">
-                <div className="shrink-0 h-8 w-8 rounded-full bg-[var(--orange)] flex items-center justify-center shadow-sm">
-                  <ShieldHalf size={15} className="text-white" />
+        {!started ? (
+          <div className="flex-1 flex flex-col items-center justify-center px-4">
+            <div className="w-full max-w-2xl -mt-16">
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="h-12 w-12 rounded-2xl bg-[var(--blue)] flex items-center justify-center shadow-sm mb-4">
+                  <ShieldHalf size={24} className="text-white" />
                 </div>
-                <div className="rounded-2xl rounded-tl-sm px-4 py-3.5 bg-[var(--surface)] border border-[var(--border)] flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--muted)] pulse-dot" style={{ animationDelay: '0ms' }} />
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--muted)] pulse-dot" style={{ animationDelay: '160ms' }} />
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--muted)] pulse-dot" style={{ animationDelay: '320ms' }} />
-                </div>
+                <h1 className="text-2xl font-semibold text-[var(--ink)]">What do you want to know?</h1>
+                <p className="text-sm text-[var(--ink-2)] mt-2 max-w-md">
+                  Ask about Chicago crime patterns and how the news covered them — grounded in
+                  real crime records and Tribune reporting.
+                </p>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-[var(--border)] bg-[var(--page)]/90 backdrop-blur px-4 md:px-6 py-4">
-          <div className="max-w-3xl mx-auto">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                send()
-              }}
-              className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] focus-within:border-[var(--blue)] shadow-sm transition-colors px-3 py-2"
-            >
-              <textarea
+              <ChatInput
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    send()
-                  }
-                }}
+                onChange={setInput}
+                onSubmit={() => send()}
+                loading={loading}
+                large
                 placeholder="Ask about a neighborhood, crime type, or incident…"
-                rows={1}
-                className="flex-1 resize-none bg-transparent outline-none text-sm py-1.5 placeholder:text-[var(--muted)] max-h-32"
               />
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="shrink-0 h-8 w-8 rounded-full bg-[var(--blue)] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-opacity"
-              >
-                <SendHorizontal size={15} className="text-white" />
-              </button>
-            </form>
-            <p className="text-center text-[10px] text-[var(--muted)] mt-2">
-              Answers are generated by an LLM over retrieved records — verify before relying on them.
-            </p>
+              <p className="text-center text-[10px] text-[var(--muted)] mt-3">
+                Answers are generated by an LLM over retrieved records — verify before relying on them.
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto">
+              <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-5">
+                {messages.map((m, i) => (
+                  <ChatMessage key={i} {...m} />
+                ))}
+
+                {loading && (
+                  <div className="flex gap-3 animate-fade-in-up">
+                    <div className="shrink-0 h-8 w-8 rounded-full bg-[var(--orange)] flex items-center justify-center shadow-sm">
+                      <ShieldHalf size={15} className="text-white" />
+                    </div>
+                    <div className="rounded-2xl rounded-tl-sm px-4 py-3.5 bg-[var(--surface)] border border-[var(--border)] flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--muted)] pulse-dot" style={{ animationDelay: '0ms' }} />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--muted)] pulse-dot" style={{ animationDelay: '160ms' }} />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--muted)] pulse-dot" style={{ animationDelay: '320ms' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-[var(--border)] bg-[var(--page)]/90 backdrop-blur px-4 md:px-6 py-4">
+              <div className="max-w-3xl mx-auto">
+                <ChatInput value={input} onChange={setInput} onSubmit={() => send()} loading={loading} />
+                <p className="text-center text-[10px] text-[var(--muted)] mt-2">
+                  Answers are generated by an LLM over retrieved records — verify before relying on them.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

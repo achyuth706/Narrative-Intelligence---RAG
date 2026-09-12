@@ -104,15 +104,18 @@ Notes:
   first deploy will have the placeholder URLs in `render.yaml` — update
   `FRONTEND_ORIGIN` and `VITE_API_URL` to the real ones and redeploy once
   both exist.
-- The backend loads `sentence-transformers`/`torch` plus the full cache into
-  memory; if it OOMs on Render's smallest instance size, move it up a tier.
+- **Memory**: Free and Starter web services both cap at 512MB RAM; loading
+  `torch` + `sentence-transformers` + the FAISS indices commonly needs
+  700MB-1.5GB. Free tier is worth trying first (it costs nothing), but if
+  the backend crashes/restarts on deploy, that's why — move it to the
+  Standard tier (2GB RAM, ~$25/mo) instead.
 - To deploy against the full dataset instead of the sample, either upgrade
   to a Render disk (persistent storage) and adjust the build command's
   `build_index.py` flags, or build `cache/` locally and upload it some other
   way — the free-tier build step doesn't have the raw 516MB CSV to work with.
-- Render's Python version may not match the 3.14 used in local development;
-  check what's available in the dashboard and pin one where `faiss-cpu` has
-  a prebuilt wheel.
+- `backend/.python-version` pins Python 3.11.9 for the Render build (not
+  the 3.14 used in local dev) since 3.11 has guaranteed `faiss-cpu`/`torch`
+  wheels on Linux.
 
 ## Known issues / notes for whoever picks this up
 
