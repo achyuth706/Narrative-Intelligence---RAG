@@ -5,3 +5,6 @@ sentence-transformers
 faiss-cpu
 google-generativeai
 pydantic
+pandas
+numpy
+tqdm
