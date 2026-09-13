@@ -223,8 +223,7 @@ export default function App() {
               </div>
 
               <p className="text-center text-[10px] text-[var(--muted)] mt-6">
-                Press <kbd className="px-1 py-0.5 rounded border border-[var(--border)] bg-[var(--surface)]">⌘K</kbd> to
-                focus · answers are LLM-generated over retrieved records
+                Answers are LLM-generated over retrieved records — verify before relying on them.
               </p>
             </div>
 
