@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import { AlertTriangle, Check, Copy, RefreshCw, Timer } from 'lucide-react'
 import { BrandGlyph } from './BrandMark'
 import SourcesPanel from './SourcesPanel'
+import normalizeMarkdown from '../lib/normalizeMarkdown'
 
 function Action({ icon: Icon, label, onClick, done }) {
   return (
@@ -72,7 +73,7 @@ export default function ChatMessage({ role, content, sources, error, elapsed, on
                 ),
               }}
             >
-              {content}
+              {normalizeMarkdown(content)}
             </ReactMarkdown>
           </div>
         </div>
