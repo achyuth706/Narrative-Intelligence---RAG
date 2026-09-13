@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { AlertTriangle, Check, Copy, RefreshCw, Timer } from 'lucide-react'
 import { BrandGlyph } from './BrandMark'
 import SourcesPanel from './SourcesPanel'
@@ -60,7 +61,19 @@ export default function ChatMessage({ role, content, sources, error, elapsed, on
           }`}
         >
           <div className="prose-ink max-w-none">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                // wide tables scroll instead of blowing out the bubble
+                table: ({ node, ...props }) => (
+                  <div className="md-table-wrap">
+                    <table {...props} />
+                  </div>
+                ),
+              }}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         </div>
 

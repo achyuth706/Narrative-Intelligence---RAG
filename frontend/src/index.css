@@ -180,15 +180,65 @@ body {
   padding: 0.1em 0.35em;
   font-size: 0.9em;
 }
+.md-table-wrap {
+  overflow-x: auto;
+  margin-top: 0.85em;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--page);
+}
 .prose-ink :where(table) {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95em;
+  font-size: 0.86em;
+  line-height: 1.45;
 }
-.prose-ink :where(th, td) {
-  border: 1px solid var(--border);
-  padding: 0.4em 0.6em;
+.prose-ink :where(thead) {
+  background: color-mix(in srgb, var(--blue) 7%, transparent);
+}
+.prose-ink :where(th) {
+  font-weight: 600;
+  color: var(--ink);
   text-align: left;
+  white-space: nowrap;
+  padding: 0.55em 0.8em;
+  border-bottom: 1px solid var(--border);
+}
+.prose-ink :where(td) {
+  padding: 0.5em 0.8em;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+.prose-ink :where(td:first-child) {
+  color: var(--ink);
+  font-weight: 500;
+}
+.prose-ink :where(tbody tr:nth-child(even)) {
+  background: color-mix(in srgb, var(--ink) 2.5%, transparent);
+}
+/* numeric-looking cells line up */
+.prose-ink :where(td, th) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* fenced blocks (incl. any ASCII tables the model still emits) scroll */
+.prose-ink :where(pre) {
+  overflow-x: auto;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75em 0.9em;
+  margin-top: 0.85em;
+  font-size: 0.8em;
+  line-height: 1.45;
+}
+.prose-ink :where(pre code) {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  white-space: pre;
 }
 
 .tabular {

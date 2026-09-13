@@ -176,7 +176,16 @@ Use ALL crime + news + cross-links below to generate a unified narrative:
 
 {context}
 
-Return a structured, factual narrative insight combining both datasets."""
+Return a structured, factual narrative insight combining both datasets.
+
+Formatting rules:
+- Respond in GitHub-Flavored Markdown.
+- For tabular data use real Markdown pipe tables (| Col | Col |) with a
+  header separator row. Never draw tables with ASCII art (+---+---+ or
+  box-drawing characters), and never wrap a table in a code fence.
+- Keep tables narrow: at most 4 columns, short cell values, no line breaks
+  inside a cell.
+- Use code fences only for actual code."""
 
         response = self.model.generate_content(prompt)
         return response.text, rag
