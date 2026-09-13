@@ -7,8 +7,6 @@ import Skyline from './components/Skyline'
 import { BrandGlyph } from './components/BrandMark'
 import { API_BASE } from './api'
 
-const STORAGE_KEY = 'ccni.conversation.v1'
-
 const QUICK_PROMPTS = [
   'Crime near N Lincoln Ave',
   'Policing in Englewood',
@@ -16,17 +14,10 @@ const QUICK_PROMPTS = [
   'Where are arrests highest?',
 ]
 
-function loadSaved() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
 export default function App() {
-  const [messages, setMessages] = useState(loadSaved)
+  // Deliberately not persisted — a reload should land you back on the hero,
+  // not resume mid-conversation.
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [stats, setStats] = useState(null)
@@ -38,14 +29,6 @@ export default function App() {
   const inputRef = useRef(null)
 
   const started = messages.length > 0
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-30)))
-    } catch {
-      /* quota or private mode — conversation just won't persist */
-    }
-  }, [messages])
 
   useEffect(() => {
     let cancelled = false
