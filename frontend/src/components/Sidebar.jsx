@@ -1,5 +1,6 @@
-import { ShieldHalf, Activity, Database, Newspaper, Link2, Sparkles, MapPinned, Tags, CalendarRange } from 'lucide-react'
+import { Activity, Database, Newspaper, Link2, Sparkles, MapPinned, Tags, CalendarRange } from 'lucide-react'
 import BarRanking from './BarRanking'
+import BrandMark from './BrandMark'
 
 const EXAMPLES = [
   'What crimes with arrests were reported near the N Lincoln Ave corridor?',
@@ -37,15 +38,7 @@ export default function Sidebar({ stats, analytics, status, onExample, onReset, 
       } md:flex w-full md:w-96 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] h-full overflow-y-auto`}
     >
       <div className="px-5 pt-6 pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-[var(--blue)] flex items-center justify-center shadow-sm">
-            <ShieldHalf size={18} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-[var(--ink)] leading-tight">Chicago Crime</h1>
-            <p className="text-[11px] text-[var(--muted)] leading-tight">Narrative Intelligence</p>
-          </div>
-        </div>
+        <BrandMark size="lg" />
         <p className="mt-4 text-xs text-[var(--ink-2)] leading-relaxed">
           Hybrid RAG over Chicago crime records and Chicago Tribune reporting.
           Retrieves matching crime chunks + news articles + deterministic
@@ -69,7 +62,7 @@ export default function Sidebar({ stats, analytics, status, onExample, onReset, 
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mt-4">
+        <div className="grid grid-cols-3 gap-2 mt-4 stagger">
           <StatCard icon={Database} label="Crime chunks" value={stats?.crime_chunks} accent="text-[var(--blue)]" />
           <StatCard icon={Newspaper} label="News chunks" value={stats?.news_chunks} accent="text-[var(--orange)]" />
           <StatCard icon={Link2} label="Links" value={stats?.links} accent="text-[var(--aqua)]" />
@@ -100,12 +93,12 @@ export default function Sidebar({ stats, analytics, status, onExample, onReset, 
       )}
 
       <Section icon={Sparkles} label="Try asking">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 stagger">
           {EXAMPLES.map((ex) => (
             <button
               key={ex}
               onClick={() => onExample(ex)}
-              className="w-full text-left text-xs text-[var(--ink-2)] hover:text-[var(--ink)] bg-[var(--page)] hover:bg-[var(--grid)]/60 border border-[var(--border)] rounded-lg px-3 py-2 transition-colors"
+              className="lift w-full text-left text-xs text-[var(--ink-2)] hover:text-[var(--ink)] bg-[var(--page)] hover:bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--blue)]/40 rounded-lg px-3 py-2"
             >
               {ex}
             </button>
@@ -131,7 +124,7 @@ export default function Sidebar({ stats, analytics, status, onExample, onReset, 
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
-    <div className="rounded-lg bg-[var(--page)] border border-[var(--border)] px-2 py-2 text-center">
+    <div className="lift rounded-lg bg-[var(--page)] border border-[var(--border)] px-2 py-2 text-center">
       <Icon size={13} className={`mx-auto mb-1 ${accent}`} />
       <div className="text-sm font-semibold text-[var(--ink)] tabular">{value?.toLocaleString() ?? '–'}</div>
       <div className="text-[9px] text-[var(--muted)] leading-tight">{label}</div>
