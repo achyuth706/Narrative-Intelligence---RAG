@@ -1,4 +1,6 @@
-// Compact logo mark: the three iconic towers reduced to a badge-sized glyph.
+// Chicago badge: the John Hancock Center (tapered, X-braced) beside Willis
+// Tower (bundled tubes stepping back). Those two silhouettes are what make a
+// skyline read as Chicago rather than "generic city".
 export function BrandGlyph({ size = 36, className = '' }) {
   return (
     <span
@@ -12,24 +14,31 @@ export function BrandGlyph({ size = 36, className = '' }) {
             <stop offset="55%" stopColor="#3f5fd0" />
             <stop offset="100%" stopColor="#4a3aa7" />
           </linearGradient>
+          {/* cuts the bracing + tube seam out so the gradient shows through */}
+          <mask id="glyph-cut">
+            <rect width="48" height="48" fill="#fff" />
+            <g stroke="#000" strokeWidth="0.62" strokeLinecap="square">
+              <line x1="9" y1="16" x2="18.25" y2="28.5" />
+              <line x1="17" y1="16" x2="7.75" y2="28.5" />
+              <line x1="7.75" y1="28.5" x2="19.5" y2="41" />
+              <line x1="18.25" y1="28.5" x2="6.5" y2="41" />
+            </g>
+            <rect x="31.7" y="10" width="0.7" height="7" fill="#000" />
+          </mask>
         </defs>
         <rect width="48" height="48" fill="url(#glyph-bg)" />
-        <g fill="rgba(255,255,255,0.96)">
-          {/* Hancock — tapered, twin antennas */}
-          <path d="M10 39 L13.2 20 L18.8 20 L22 39 Z" />
-          <rect x="14.4" y="12" width="1.3" height="8" />
-          <rect x="17.3" y="12" width="1.3" height="8" />
-          {/* Willis — bundled tubes, twin antennas */}
-          <rect x="24" y="23" width="11" height="16" />
-          <rect x="25.8" y="16" width="7.4" height="7" />
-          <rect x="25.8" y="9" width="3" height="7" />
-          <rect x="30.2" y="9" width="3" height="7" />
-          <rect x="26.9" y="4" width="1.1" height="5" />
-          <rect x="31.3" y="4" width="1.1" height="5" />
-          {/* Aon — slim slab */}
-          <rect x="37" y="18" width="5.5" height="21" />
+        <g fill="#ffffff" mask="url(#glyph-cut)">
+          {/* John Hancock Center */}
+          <path d="M6.5 41 L9 16 L17 16 L19.5 41 Z" />
+          <rect x="11" y="8" width="1.3" height="8" />
+          <rect x="14.4" y="8" width="1.3" height="8" />
+          {/* Willis Tower */}
+          <rect x="22.5" y="24" width="19" height="17" />
+          <rect x="25" y="17" width="14" height="7" />
+          <rect x="27.5" y="10" width="9" height="7" />
+          <rect x="28.9" y="4" width="1.3" height="6" />
+          <rect x="33.8" y="4" width="1.3" height="6" />
         </g>
-        <rect x="0" y="39" width="48" height="9" fill="rgba(255,255,255,0.16)" />
       </svg>
     </span>
   )
