@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from google.api_core import exceptions as google_errors
 from pydantic import BaseModel
 
-from rag_system import NarrativeChatbot, NarrativeRAGSystem
+from rag_system import GenerationBlocked, NarrativeChatbot, NarrativeRAGSystem
 
 load_dotenv()
 log = logging.getLogger("ccni")
@@ -89,9 +89,16 @@ def ask(req: AskRequest):
     try:
         answer, rag = state["chatbot"].ask(req.query, top_k=req.top_k)
     except google_errors.ResourceExhausted:
-        log.warning("Gemini quota exhausted")
+        log.warning("Gemini quota exhausted on every fallback model")
         raise HTTPException(
-            429, "The Gemini API quota is used up for now (free tier is ~20 requests/day). Please try again later."
+            429,
+            "All available Gemini models are out of free-tier quota right now. "
+            "Please try again later — limits reset daily.",
+        )
+    except GenerationBlocked as e:
+        log.warning("Gemini returned no text: %s", e)
+        raise HTTPException(
+            502, "The model declined to answer this one (likely a safety filter). Try rephrasing the question."
         )
     except (google_errors.PermissionDenied, google_errors.Unauthenticated) as e:
         log.error("Gemini rejected the API key: %s", e)

@@ -4,12 +4,32 @@ and answers queries against them. Building the cache is a separate, offline
 step — this module never re-embeds the raw crime/news data itself.
 """
 import json
+import logging
 import os
-from collections import defaultdict
+import threading
+from collections import OrderedDict, defaultdict
 
 import faiss
 import google.generativeai as genai
+from google.api_core import exceptions as google_errors
 from sentence_transformers import SentenceTransformer
+
+log = logging.getLogger("ccni")
+
+# Tried in order. Gemini free-tier quotas are tracked per model, so when the
+# primary model's quota runs out the next one still has its own allowance.
+# Each of these was verified to respond on this project's key; the 2.5-series
+# models are still *listed* but return 404 for new users, so they're excluded.
+FALLBACK_MODELS = [
+    "models/gemini-flash-latest",
+    "models/gemini-3.5-flash-lite",
+    "models/gemini-3.1-flash-lite",
+    "models/gemini-flash-lite-latest",
+]
+
+
+class GenerationBlocked(RuntimeError):
+    """Gemini returned no usable text, typically a safety-filter block."""
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = os.environ.get("CACHE_DIR") or os.path.join(BASE_DIR, "cache")
@@ -151,12 +171,43 @@ class NarrativeChatbot:
     """Generation side: stuffs retrieved chunks into a prompt and asks
     Gemini to synthesize a narrative answer."""
 
-    def __init__(self, api_key, system: NarrativeRAGSystem, model_name="models/gemini-flash-latest"):
+    def __init__(self, api_key, system: NarrativeRAGSystem, model_names=None, cache_size=256):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model_name)
+        self.model_names = list(model_names or FALLBACK_MODELS)
+        self.models = {name: genai.GenerativeModel(name) for name in self.model_names}
         self.system = system
+        # Visitors mostly click the same example prompts; answering repeats
+        # from memory keeps them from spending the small daily quota.
+        self.cache_size = cache_size
+        self._cache = OrderedDict()
+        self._cache_lock = threading.Lock()
+
+    def _generate(self, prompt):
+        last_error = None
+        for name in self.model_names:
+            try:
+                response = self.models[name].generate_content(prompt)
+            except (google_errors.ResourceExhausted, google_errors.NotFound) as e:
+                # this model is out of quota or unavailable; the next has its own allowance
+                log.warning("Gemini model %s unavailable (%s), trying next", name, type(e).__name__)
+                last_error = e
+                continue
+            try:
+                text = response.text
+            except ValueError:
+                # .text raises when no candidate part came back (e.g. safety block)
+                raise GenerationBlocked(f"{name} returned no text (likely blocked by safety filters)")
+            log.info("answered with %s", name)
+            return text
+        raise last_error
 
     def ask(self, query, top_k=5):
+        key = (" ".join(query.lower().split()), top_k)
+        with self._cache_lock:
+            if key in self._cache:
+                self._cache.move_to_end(key)
+                return self._cache[key]
+
         rag = self.system.rag_query(query, top_k=top_k)
 
         context = "\n\n".join(
@@ -187,5 +238,10 @@ Formatting rules:
   inside a cell.
 - Use code fences only for actual code."""
 
-        response = self.model.generate_content(prompt)
-        return response.text, rag
+        result = (self._generate(prompt), rag)
+        with self._cache_lock:
+            self._cache[key] = result
+            self._cache.move_to_end(key)
+            while len(self._cache) > self.cache_size:
+                self._cache.popitem(last=False)
+        return result
