@@ -7,6 +7,13 @@ import Skyline from './components/Skyline'
 import { BrandGlyph } from './components/BrandMark'
 import { API_BASE } from './api'
 
+const SB_MIN = 260
+const SB_MAX = 620
+const SB_DEFAULT = 384
+const SB_KEY = 'ccni.sidebarWidth'
+
+const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n))
+
 const QUICK_PROMPTS = [
   'Crime near N Lincoln Ave',
   'Policing in Englewood',
@@ -25,8 +32,14 @@ export default function App() {
   const [status, setStatus] = useState('checking')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [atBottom, setAtBottom] = useState(true)
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = Number(localStorage.getItem(SB_KEY))
+    return saved >= SB_MIN && saved <= SB_MAX ? saved : SB_DEFAULT
+  })
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+  const rootRef = useRef(null)
+  const dragRef = useRef(false)
 
   const started = messages.length > 0
 
@@ -82,6 +95,67 @@ export default function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  // --- sidebar resizing -------------------------------------------------
+  // Width is driven through a CSS variable during the drag rather than React
+  // state, so each frame is a single style write instead of a re-render of
+  // the whole tree (which makes the panel lag behind the cursor).
+  const applyWidth = useCallback((w) => {
+    rootRef.current?.style.setProperty('--sb-w', `${w}px`)
+  }, [])
+
+  const commitWidth = useCallback((w) => {
+    setSidebarWidth(w)
+    try {
+      localStorage.setItem(SB_KEY, String(w))
+    } catch {
+      /* private mode — width just won't be remembered */
+    }
+  }, [])
+
+  const beginResize = useCallback(
+    (e) => {
+      e.preventDefault()
+      dragRef.current = true
+      document.body.classList.add('resizing')
+
+      const move = (ev) => {
+        if (!dragRef.current) return
+        // the sidebar starts at x=0, so the pointer's x *is* the width
+        applyWidth(clamp(ev.clientX, SB_MIN, SB_MAX))
+      }
+      const end = (ev) => {
+        dragRef.current = false
+        document.body.classList.remove('resizing')
+        window.removeEventListener('pointermove', move)
+        window.removeEventListener('pointerup', end)
+        window.removeEventListener('pointercancel', end)
+        commitWidth(clamp(ev.clientX, SB_MIN, SB_MAX))
+      }
+
+      window.addEventListener('pointermove', move)
+      window.addEventListener('pointerup', end)
+      window.addEventListener('pointercancel', end)
+    },
+    [applyWidth, commitWidth],
+  )
+
+  const nudgeWidth = useCallback(
+    (e) => {
+      const step = e.shiftKey ? 48 : 16
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        commitWidth(clamp(sidebarWidth - step, SB_MIN, SB_MAX))
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        commitWidth(clamp(sidebarWidth + step, SB_MIN, SB_MAX))
+      } else if (e.key === 'Home') {
+        e.preventDefault()
+        commitWidth(SB_DEFAULT)
+      }
+    },
+    [sidebarWidth, commitWidth],
+  )
 
   const send = useCallback(
     async (query, { replaceLast = false } = {}) => {
@@ -149,7 +223,11 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex bg-[var(--page)] text-[var(--ink)] overflow-hidden">
+    <div
+      ref={rootRef}
+      className="h-screen w-screen flex bg-[var(--page)] text-[var(--ink)] overflow-hidden"
+      style={{ '--sb-w': `${sidebarWidth}px` }}
+    >
       <Sidebar
         stats={stats}
         analytics={analytics}
@@ -160,6 +238,21 @@ export default function App() {
         }}
         onReset={() => setMessages([])}
         open={sidebarOpen}
+      />
+
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        aria-valuenow={sidebarWidth}
+        aria-valuemin={SB_MIN}
+        aria-valuemax={SB_MAX}
+        tabIndex={0}
+        title="Drag to resize · double-click to reset"
+        onPointerDown={beginResize}
+        onKeyDown={nudgeWidth}
+        onDoubleClick={() => commitWidth(SB_DEFAULT)}
+        className="resize-handle hidden md:block"
       />
 
       <div className="flex-1 flex flex-col min-w-0 relative">

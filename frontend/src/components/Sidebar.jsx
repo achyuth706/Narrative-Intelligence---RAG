@@ -35,11 +35,11 @@ export default function Sidebar({ stats, analytics, status, onExample, onReset, 
     <aside
       className={`${
         open ? 'flex' : 'hidden'
-      } md:flex w-full md:w-96 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] h-full overflow-y-auto`}
+      } md:flex sidebar-shell w-full md:w-[var(--sb-w)] shrink-0 flex-col border-r border-[var(--border)] md:border-r-0 bg-[var(--surface)] h-full overflow-y-auto overflow-x-hidden`}
     >
       <div className="px-5 pt-6 pb-4">
         <BrandMark size="lg" />
-        <p className="mt-4 text-xs text-[var(--ink-2)] leading-relaxed">
+        <p className="sb-desc mt-4 text-xs text-[var(--ink-2)] leading-relaxed">
           Hybrid RAG over Chicago crime records and Chicago Tribune reporting.
           Retrieves matching crime chunks + news articles + deterministic
           links, then asks Gemini to synthesize a narrative.
@@ -51,18 +51,18 @@ export default function Sidebar({ stats, analytics, status, onExample, onReset, 
               status === 'online' ? 'bg-[var(--green)]' : status === 'checking' ? 'bg-[var(--yellow)]' : 'bg-[var(--red)]'
             }`}
           />
-          <span className="text-[var(--muted)]">
+          <span className="text-[var(--muted)] whitespace-nowrap">
             {status === 'online' ? 'Backend connected' : status === 'checking' ? 'Connecting…' : 'Backend offline'}
           </span>
           {dateRange && (
-            <span className="ml-auto flex items-center gap-1 text-[10px] text-[var(--muted)]">
+            <span className="sb-daterange ml-auto flex items-center gap-1 text-[10px] text-[var(--muted)] whitespace-nowrap">
               <CalendarRange size={11} />
               {formatDate(dateRange.start)}–{formatDate(dateRange.end)}
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mt-4 stagger">
+        <div className="sb-stats grid grid-cols-3 gap-2 mt-4 stagger">
           <StatCard icon={Database} label="Crime chunks" value={stats?.crime_chunks} accent="text-[var(--blue)]" />
           <StatCard icon={Newspaper} label="News chunks" value={stats?.news_chunks} accent="text-[var(--orange)]" />
           <StatCard icon={Link2} label="Links" value={stats?.links} accent="text-[var(--aqua)]" />
@@ -126,8 +126,8 @@ function StatCard({ icon: Icon, label, value, accent }) {
   return (
     <div className="lift rounded-lg bg-[var(--page)] border border-[var(--border)] px-2 py-2 text-center">
       <Icon size={13} className={`mx-auto mb-1 ${accent}`} />
-      <div className="text-sm font-semibold text-[var(--ink)] tabular">{value?.toLocaleString() ?? '–'}</div>
-      <div className="text-[9px] text-[var(--muted)] leading-tight">{label}</div>
+      <div className="sb-stat-value text-sm font-semibold text-[var(--ink)] tabular">{value?.toLocaleString() ?? '–'}</div>
+      <div className="sb-stat-label text-[9px] text-[var(--muted)] leading-tight">{label}</div>
     </div>
   )
 }

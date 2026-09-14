@@ -127,6 +127,79 @@ body {
   }
 }
 
+/* ------------------------------------------------- resizable sidebar --- */
+
+/* The sidebar is its own query container, so its contents respond to the
+   sidebar's own width as you drag it — not to the viewport width. */
+.sidebar-shell {
+  container-type: inline-size;
+  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width;
+}
+
+/* during an active drag, width is driven frame-by-frame: no transition, or
+   the panel visibly lags behind the cursor */
+body.resizing .sidebar-shell {
+  transition: none;
+}
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+body.resizing * {
+  cursor: col-resize !important;
+}
+
+/* Sits in its own 7px gutter rather than overlapping the sidebar, so it
+   never swallows clicks meant for the sidebar's scrollbar. It also *is* the
+   divider line, so the sidebar itself needs no right border. */
+.resize-handle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 7px;
+  z-index: 20;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--surface);
+}
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--border);
+  border-radius: 2px;
+  transition: background 0.16s ease, width 0.16s ease;
+}
+.resize-handle:hover::after,
+.resize-handle:focus-visible::after,
+body.resizing .resize-handle::after {
+  background: var(--blue);
+  width: 2px;
+}
+.resize-handle:focus-visible {
+  outline: none;
+}
+
+/* --- the sidebar reacts to its own width as it is dragged --- */
+@container (max-width: 340px) {
+  .sb-daterange { display: none; }          /* stops crowding the status row */
+}
+@container (max-width: 310px) {
+  .sb-stat-label { font-size: 8px; letter-spacing: -0.01em; }
+  .sb-desc { display: none; }               /* blurb is the first thing to go */
+}
+@container (max-width: 280px) {
+  .sb-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sb-stats > :last-child { grid-column: span 2; }
+}
+@container (min-width: 460px) {
+  .sb-stats { gap: 0.625rem; }
+  .sb-stat-value { font-size: 1.05rem; }
+}
+
 /* ------------------------------------------------------------ typography */
 
 .wordmark {
