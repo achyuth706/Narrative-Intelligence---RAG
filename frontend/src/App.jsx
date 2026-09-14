@@ -171,13 +171,22 @@ export default function App() {
       const t0 = performance.now()
 
       try {
-        const res = await fetch(`${API_BASE}/ask`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: q, top_k: 5 }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.detail || 'Request failed')
+        let res
+        try {
+          res = await fetch(`${API_BASE}/ask`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q, top_k: 5 }),
+          })
+        } catch {
+          // fetch only rejects when no response was readable at all
+          throw new Error(
+            "Couldn't reach the backend. It may be starting up — wait a moment and retry.",
+          )
+        }
+        // error pages from the hosting proxy aren't JSON, so don't assume
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.detail || `Request failed (HTTP ${res.status})`)
 
         setMessages((m) => [
           ...m,
